@@ -1,2 +1,2 @@
 # react-loading-component
-React component used for wrapping observed loadables for tracking completion of long running tasks like web requests.
+React component used for tracking the state and completed data from long running tasks like web requests.
