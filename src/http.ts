@@ -23,10 +23,10 @@ export class Http {
 
 					return response.json();
 				})
-				.then((jsonResponse) => {
-					loadable.Succeeded(transformFunc === undefined ? jsonResponse : transformFunc(jsonResponse));
-					onFulfilled(jsonResponse as TResponse);
-				}, (reason) => {
+				.then((jsonResponse: TResponse) => {
+					loadable.Succeeded(transformFunc === undefined ? jsonResponse as unknown as TLoadableData : transformFunc(jsonResponse));
+					onFulfilled(jsonResponse);
+				}, (reason: { message: string }) => {
 					loadable.Failed(reason.message);
 					onRejected(reason);
 				});
@@ -63,8 +63,8 @@ export class Http {
 			.then((jsonResponse) => {
 				loadable.Succeeded(jsonResponse);
 				onFulfilled(jsonResponse as TResponse);
-			}, (reason) => {
-				loadable.Failed(reason);
+			}, (reason: { message: string }) => {
+				loadable.Failed(reason.message);
 				onRejected(reason);
 			});
 		});
