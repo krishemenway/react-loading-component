@@ -43,8 +43,17 @@ export class Loadable<TSuccessData> {
 		this._defaultError = defaultError;
 	}
 
-	public Start(): Loadable<TSuccessData> {
+	public Start(promise?: Promise<TSuccessData>): Loadable<TSuccessData> {
+		if (!this.CanMakeRequest()) {
+			return this;
+		}
+
 		this._data.Value = Loadable.LoadingData;
+
+		if (promise !== undefined) {
+			promise.then((value) => { this.Succeeded(value); }).catch((reason: Error) => { this.Failed(reason.message); });
+		}
+
 		return this;
 	}
 

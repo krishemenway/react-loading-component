@@ -1,5 +1,3 @@
-import type { Loadable } from ".";
-
 export class Http {
 	/**
 	 * @param url Url path for get request.
@@ -7,14 +5,8 @@ export class Http {
 	 * @param transformFunc Optional conversion function if you want something more complex than the response object stored.
 	 * @template TResponse Describes the type for the json response
 	 */
-	public static get<TResponse, TLoadableData = TResponse>(url: string, loadable: Loadable<TLoadableData>, transformFunc?: (response: TResponse) => TLoadableData): Promise<TResponse> {
-		return new Promise<TResponse>((onFulfilled, onRejected) => {
-			if (!loadable.CanMakeRequest()) {
-				return;
-			}
-
-			loadable.Start();
-
+	public static get<TResponse, TLoadableData = TResponse>(url: string, transformFunc?: (response: TResponse) => TLoadableData): Promise<TLoadableData> {
+		return new Promise<TLoadableData>((onFulfilled, onRejected) => {
 			fetch(url)
 				.then((response) => {
 					if (!response.ok) {
@@ -24,10 +16,8 @@ export class Http {
 					return response.json();
 				})
 				.then((jsonResponse: TResponse) => {
-					loadable.Succeeded(transformFunc === undefined ? jsonResponse as unknown as TLoadableData : transformFunc(jsonResponse));
-					onFulfilled(jsonResponse);
-				}, (reason: { message: string }) => {
-					loadable.Failed(reason.message);
+					onFulfilled(transformFunc === undefined ? jsonResponse as unknown as TLoadableData : transformFunc(jsonResponse));
+				}, (reason: Error) => {
 					onRejected(reason);
 				});
 		});
@@ -36,19 +26,13 @@ export class Http {
 	/**
 	 * @param url Url path for get request
 	 * @param request Request object to be JSON.stringified for the post body.
-	 * @param loadable Loadable object that will used to track the status and result of this request.
+	 * @param transformFunc Optional conversion function if you want something more complex than the response object stored.
 	 * @template TRequest Describes the type for the json request
 	 * @template TResponse Describes the type for the json response
 	 */
-	public static post<TRequest, TResponse>(url: string, request: TRequest, loadable: Loadable<TResponse>): Promise<TResponse> {
-		return new Promise<TResponse>((onFulfilled, onRejected) => {
-			if (!loadable.CanMakeRequest()) {
-				return;
-			}
-
-			loadable.Start();
-
-			fetch(url, { 
+	public static post<TRequest, TResponse, TLoadableData>(url: string, request: TRequest, transformFunc?: (response: TResponse) => TLoadableData): Promise<TLoadableData> {
+		return new Promise<TLoadableData>((onFulfilled, onRejected) => {
+			fetch(url, {
 				body: JSON.stringify(request),
 				method: "post",
 				headers: { "Content-Type": "application/json" },
@@ -60,11 +44,9 @@ export class Http {
 
 				return response.json();
 			})
-			.then((jsonResponse) => {
-				loadable.Succeeded(jsonResponse);
-				onFulfilled(jsonResponse as TResponse);
-			}, (reason: { message: string }) => {
-				loadable.Failed(reason.message);
+			.then((jsonResponse: TResponse) => {
+				onFulfilled(transformFunc === undefined ? jsonResponse as unknown as TLoadableData : transformFunc(jsonResponse));
+			}, (reason: Error) => {
 				onRejected(reason);
 			});
 		});

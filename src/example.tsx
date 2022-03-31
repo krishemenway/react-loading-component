@@ -42,7 +42,7 @@ class DashboardService {
 	}
 
 	public LoadDashboard(): void {
-		Http.get<DashboardResponse, DashboardData>("/SomeEndpoint", this.DashboardData, (response) => new DashboardData(response));
+		this.DashboardData.Start(Http.get<DashboardResponse, DashboardData>("/SomeEndpoint", (response) => new DashboardData(response)));
 	}
 
 	public DashboardData: Loadable<DashboardData>;
