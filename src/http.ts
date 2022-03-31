@@ -2,7 +2,9 @@ import type { Loadable } from ".";
 
 export class Http {
 	/**
-	 * @param url Url path for get request
+	 * @param url Url path for get request.
+	 * @param loadable Loadable object that will used to track the status and result of this request.
+	 * @param transformFunc Optional conversion function if you want something more complex than the response object stored.
 	 * @template TResponse Describes the type for the json response
 	 */
 	public static get<TResponse, TLoadableData = TResponse>(url: string, loadable: Loadable<TLoadableData>, transformFunc?: (response: TResponse) => TLoadableData): Promise<TResponse> {
@@ -33,8 +35,8 @@ export class Http {
 
 	/**
 	 * @param url Url path for get request
-	 * @param request Request for the post body
-	 * @param loadable Loadable to track progress of request
+	 * @param request Request object to be JSON.stringified for the post body.
+	 * @param loadable Loadable object that will used to track the status and result of this request.
 	 * @template TRequest Describes the type for the json request
 	 * @template TResponse Describes the type for the json response
 	 */
