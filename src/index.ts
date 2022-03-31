@@ -52,7 +52,7 @@ export class Loadable<TSuccessData> {
 		this._data.Value = { SuccessData: successData, State: LoadState.Loaded, ErrorMessage: "" };
 	}
 
-	public Failed(errorMessage: string): void {
+	public Failed(errorMessage?: string): void {
 		this._data.Value = { SuccessData: null, State: LoadState.Failed, ErrorMessage: errorMessage ?? this._defaultError };
 	}
 
