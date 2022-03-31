@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Observable, ReadOnlyObservable } from "@residualeffect/reactor";
 
-function useObservable<T>(observable: ReadOnlyObservable<T>): T {
+export function useObservable<T>(observable: ReadOnlyObservable<T>): T {
 	const [, triggerReact] = React.useReducer((x: number) => x + 1, 0);
 	React.useLayoutEffect(() => observable.Subscribe(triggerReact), [observable]);
 	return observable.Value;
@@ -38,9 +38,9 @@ export interface LoadableData<TSuccessData> {
 }
 
 export class Loadable<TSuccessData> {
-	constructor(defaultError?: string) {
+	constructor(defaultError: string) {
 		this._data = new Observable(Loadable.NotStartedData);
-		this._defaultError = defaultError ?? "Something went wrong making this request. Please try again later.";
+		this._defaultError = defaultError;
 	}
 
 	public Start(): Loadable<TSuccessData> {
@@ -87,14 +87,14 @@ export function isLoading(loadable: Loadable<unknown>): boolean {
 	return useObservable(loadable.Data).State === LoadState.Loading;
 }
 
-function Loading<A>(props: { loadables: [Loadable<A>], successComponent: (a: A) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function Loading<A, B>(props: { loadables: [Loadable<A>, Loadable<B>], successComponent: (a: A, b: B) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function Loading<A, B, C>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>], successComponent: (a: A, b: B, c: C) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function Loading<A, B, C, D>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>], successComponent: (a: A, b: B, c: C, d: D) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function Loading<A, B, C, D, E>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>, Loadable<E>], successComponent: (a: A, b: B, c: C, d: D, e: E) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function Loading<A, B, C, D, E, F>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>, Loadable<E>, Loadable<F>], successComponent: (a: A, b: B, c: C, d: D, e: E, f: F) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A>(props: { loadables: [Loadable<A>], successComponent: (a: A) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A, B>(props: { loadables: [Loadable<A>, Loadable<B>], successComponent: (a: A, b: B) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A, B, C>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>], successComponent: (a: A, b: B, c: C) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A, B, C, D>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>], successComponent: (a: A, b: B, c: C, d: D) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A, B, C, D, E>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>, Loadable<E>], successComponent: (a: A, b: B, c: C, d: D, e: E) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+export function Loading<A, B, C, D, E, F>(props: { loadables: [Loadable<A>, Loadable<B>, Loadable<C>, Loadable<D>, Loadable<E>, Loadable<F>], successComponent: (a: A, b: B, c: C, d: D, e: E, f: F) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
 
-function Loading(props: { loadables: Loadable<unknown>[], successComponent: (...inputValues: unknown[]) => JSX.Element, } & BaseLoadingComponentProps): JSX.Element {
+export function Loading(props: { loadables: Loadable<unknown>[], successComponent: (...inputValues: unknown[]) => JSX.Element, } & BaseLoadingComponentProps): JSX.Element {
 	const loadableDatas = props.loadables.map((loadable) => useObservable(loadable.Data));
 	const loadState = (props.determineLoadState ?? DefaultDetermineLoadState)(loadableDatas);
 
@@ -112,5 +112,3 @@ function Loading(props: { loadables: Loadable<unknown>[], successComponent: (...
 			return props.loadingComponent;
 	}
 }
-
-export default Loading;
