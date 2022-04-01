@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Observable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
-import { Loading, Loadable } from "./index";
+import { Loading, Receiver } from "./index";
 import { Http } from "./http";
 
 // This example illustrates how you can build a UI that switches between rendering Success/Loading/Error components
@@ -10,14 +10,14 @@ import { Http } from "./http";
 // because the data has not been loaded yet--the <Loading /> component provides the guarantee that the loaded data is there and ready.
 
 export const View: React.FC = () => {
-	const service = React.useMemo(() => new DashboardService(), []);
+	const service = React.useMemo(() => new ProfileEditor(), []);
 	
 	return (
 		<div>
 			<h1>Loading Example:</h1>
 
 			<Loading
-				loadables={[service.DashboardData]}
+				receivers={[service.Dashboard]}
 				successComponent={(data) => <EditDashboard data={data} />}
 				loadingComponent={<DashboardLoading />}
 				errorComponent={(errors) => <DashboardErrors errors={errors} />}
@@ -26,35 +26,39 @@ export const View: React.FC = () => {
 	);
 };
 
-class DashboardData {
-	constructor(response: DashboardResponse) {
+class ProfileData {
+	constructor(response: ProfileResponse) {
 		this.Name = new Observable(response.Name);
+	}
+
+	public Save(): void {
+		// this is where you would do whatever saving that needs done using the Observables that have been updated.
 	}
 
 	public Name: Observable<string>;
 }
 
-interface DashboardResponse {
+interface ProfileResponse {
 	Name: string;
 }
 
-class DashboardService {
+class ProfileEditor {
 	constructor() {
-		this.DashboardData = new Loadable<DashboardData>("There was an issue downloading the dashboard data. Try Again later.");
+		this.Dashboard = new Receiver<ProfileData>("There was an issue downloading the dashboard data. Try Again later.");
 		this.LoadDashboard();
 	}
 
 	public LoadDashboard(): void {
-		this.DashboardData.Start(Http.get<DashboardResponse, DashboardData>("/SomeEndpoint", (response) => new DashboardData(response)));
+		this.Dashboard.Start(Http.get<ProfileResponse, ProfileData>("/SomeEndpoint", (response) => new ProfileData(response)));
 	}
 
-	public DashboardData: Loadable<DashboardData>;
+	public Dashboard: Receiver<ProfileData>;
 }
 
 const DashboardLoading: React.FC = () => <div>Loading ...</div>;
 const DashboardErrors: React.FC<{ errors: string[] }> = (props) => <div>{props.errors.map((e) => <div>{e}</div>)}</div>;
 
-const EditDashboard: React.FC<{ data: DashboardData }> = (props) => {
+const EditDashboard: React.FC<{ data: ProfileData }> = (props) => {
 	const name = useObservable(props.data.Name);
 
 	return (
