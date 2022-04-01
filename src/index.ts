@@ -45,7 +45,9 @@ export class Loadable<TSuccessData> {
 		this._data.Value = Loadable.LoadingData;
 
 		if (promise !== undefined) {
-			promise.then((value) => { this.Succeeded(value); }).catch((reason: Error) => { this.Failed(reason.message); });
+			promise
+				.then((value) => { this.Succeeded(value); }, (reason: Error) => { this.Failed(reason.message); })
+				.catch((reason: Error) => { this.Failed(reason.message); });
 		}
 
 		return this;
