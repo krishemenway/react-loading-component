@@ -24,16 +24,17 @@
     "react": "17.0.2"
   },
   "devDependencies": {
+    "@residualeffect/reactor": "^4.1.0",
+    "@residualeffect/rereactor": "^1.0.0",
     "@types/jest": "^26.0.20",
     "@types/react": "17.0.39",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
-    "@residualeffect/reactor": "^4.1.0",
     "eslint": "^7.19.0",
     "jest": "^26.6.3",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^3.0.2",
     "react": "17.0.2",
+    "rimraf": "^3.0.2",
     "ts-jest": "^26.5.1",
     "typescript": "^4.1.5"
   },

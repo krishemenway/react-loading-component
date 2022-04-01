@@ -1,11 +1,5 @@
-import * as React from "react";
 import { Observable, ReadOnlyObservable } from "@residualeffect/reactor";
-
-export function useObservable<T>(observable: ReadOnlyObservable<T>): T {
-	const [, triggerReact] = React.useReducer((x: number) => x + 1, 0);
-	React.useLayoutEffect(() => observable.Subscribe(triggerReact), [observable]);
-	return observable.Value;
-}
+import { useObservable } from "@residualeffect/rereactor";
 
 export enum LoadState {
 	NotStarted,
