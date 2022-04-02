@@ -14,55 +14,75 @@ export const View: React.FC = () => {
 	
 	return (
 		<div>
-			<h1>Loading Example:</h1>
+			<h1>Edit Your Profile:</h1>
 
 			<Loading
-				receivers={[service.Dashboard]}
-				successComponent={(data) => <EditDashboard data={data} />}
-				loadingComponent={<DashboardLoading />}
-				errorComponent={(errors) => <DashboardErrors errors={errors} />}
+				receivers={[service.Profile]}
+				notStartedComponent={<ProfileLoading />}
+				pendingComponent={<ProfileLoading />}
+				successComponent={(data) => <EditProfile data={data} />}
+				errorComponent={(errors) => <ProfileErrors errors={errors} />}
 			/>
 		</div>
 	);
 };
 
-class ProfileData {
-	constructor(response: ProfileResponse) {
-		this.Name = new Observable(response.Name);
+interface SaveRequest {
+	Name: string;
+	Email: string;
+}
+
+class EditableProfile {
+	constructor(currentProfile: ProfileResponse) {
+		this.Name = new Observable(currentProfile.Name);
+		this.Email = new Observable(currentProfile.Email);
+		this.IsSaving = new Observable(false);
 	}
 
 	public Save(): void {
-		// this is where you would do whatever saving that needs done using the Observables that have been updated.
+		this.IsSaving.Value = true;
+
+		const request: SaveRequest = {
+			Name: this.Name.Value,
+			Email: this.Email.Value,
+		};
+
+		Http.post("/Save", request).then(() => { this.IsSaving.Value = false; });
 	}
 
 	public Name: Observable<string>;
+	public Email: Observable<string>;
+
+	public IsSaving: Observable<boolean>;
 }
 
 interface ProfileResponse {
 	Name: string;
+	Email: string;
 }
 
 class ProfileEditor {
 	constructor() {
-		this.Dashboard = new Receiver<ProfileData>("There was an issue downloading the dashboard data. Try Again later.");
-		this.LoadDashboard();
+		this.Profile = new Receiver<EditableProfile>("There was an issue downloading the profile data. Try Again later.");
+		this.LoadProfile();
 	}
 
-	public LoadDashboard(): void {
-		this.Dashboard.Start(Http.get<ProfileResponse, ProfileData>("/SomeEndpoint", (response) => new ProfileData(response)));
+	public LoadProfile(): void {
+		this.Profile.Start(Http.get<ProfileResponse, EditableProfile>("/SomeEndpoint", (response) => new EditableProfile(response)));
 	}
 
-	public Dashboard: Receiver<ProfileData>;
+	public Profile: Receiver<EditableProfile>;
 }
 
-const DashboardLoading: React.FC = () => <div>Loading ...</div>;
-const DashboardErrors: React.FC<{ errors: string[] }> = (props) => <div>{props.errors.map((e) => <div>{e}</div>)}</div>;
+const ProfileLoading: React.FC = () => <div>Loading ...</div>;
+const ProfileErrors: React.FC<{ errors: string[] }> = (props) => <div>{props.errors.map((e) => <div>{e}</div>)}</div>;
 
-const EditDashboard: React.FC<{ data: ProfileData }> = (props) => {
+const EditProfile: React.FC<{ data: EditableProfile }> = (props) => {
 	const name = useObservable(props.data.Name);
+	const isSaving = useObservable(props.data.IsSaving);
 
 	return (
-		<>
+		<form onSubmit={(_) => { props.data.Save(); }}>
 			<label>
 				Name:
 				<input
@@ -71,6 +91,17 @@ const EditDashboard: React.FC<{ data: ProfileData }> = (props) => {
 					value={name}
 				/>
 			</label>
-		</>
+
+			<label>
+				Email:
+				<input
+					type="text"
+					onChange={(evt) => props.data.Email.Value = evt.currentTarget.value}
+					value={name}
+				/>
+			</label>
+
+			<button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</button>
+		</form>
 	)
 };

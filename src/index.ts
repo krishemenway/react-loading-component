@@ -81,9 +81,9 @@ export class Receiver<TSuccessData> {
 }
 
 export interface BaseLoadingComponentProps {
-	loadingComponent: JSX.Element,
+	pendingComponent: JSX.Element,
 	errorComponent: (errors: string[]) => JSX.Element,
-	notStartedComponent?: JSX.Element;
+	notStartedComponent: JSX.Element;
 	unloadedComponent?: JSX.Element;
 	determineLoadState?: () => LoadState;
 }
@@ -109,11 +109,11 @@ export function Loading(props: { receivers: Receiver<unknown>[], successComponen
 		case LoadState.Loaded:
 			return props.successComponent(...receiverData.map((data) => data.SuccessData));
 		case LoadState.NotStarted:
-			return props.notStartedComponent ?? props.loadingComponent;
+			return props.notStartedComponent;
 		case LoadState.Unloaded:
-			return props.unloadedComponent ?? props.notStartedComponent ?? props.loadingComponent;
+			return props.unloadedComponent ?? props.notStartedComponent;
 		case LoadState.Pending:
 		default:
-			return props.loadingComponent;
+			return props.pendingComponent;
 	}
 }
