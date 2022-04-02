@@ -1,39 +1,35 @@
 import { Observable, ReadOnlyObservable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
 
-export enum LoadState {
+export enum ReceiveState {
 	NotStarted,
 	Pending,
-	Loaded,
+	Received,
 	Failed,
 	Unloaded,
 }
 
-interface Dictionary<T> {
-	[key: string]: T;
+export function FindCountsByState(receivers: ReceiverData<unknown>[]): Record<string, number> {
+	const counts: Record<string, number> = Object.keys(ReceiveState).reduce((receiveStateCount, state) => { receiveStateCount[state] = 0; return receiveStateCount; }, {} as Record<string, number>);
+	return receivers.reduce((current, receiverData) => { current[receiverData.State]++; return current; }, counts);
 }
 
-export function FindLoadingStateCountsByState(datas: ReceiverData<unknown>[]): Dictionary<number> {
-	const initialStateCounts: Dictionary<number> = Object.keys(LoadState).reduce((loadStateCounts, loadState) => { loadStateCounts[loadState] = 0; return loadStateCounts; }, {} as Dictionary<number>);
-	return datas.reduce((loadStateCounts, loadableData) => { loadStateCounts[loadableData.State]++; return loadStateCounts; }, initialStateCounts);
-}
+const StatePriorityOrder = [ReceiveState.Failed, ReceiveState.Pending, ReceiveState.NotStarted, ReceiveState.Unloaded, ReceiveState.Received];
 
-const LoadStatePriorityOrder = [LoadState.Failed, LoadState.Pending, LoadState.NotStarted, LoadState.Unloaded, LoadState.Loaded];
-
-export function DefaultDetermineLoadState(datas: ReceiverData<unknown>[]): LoadState {
-	const loadingStateCountsByState = FindLoadingStateCountsByState(datas);
-	return LoadStatePriorityOrder.find(((state) => loadingStateCountsByState[state] > 0)) ?? LoadState.NotStarted;
+export function DefaultDetermineLoadState(receivers: ReceiverData<unknown>[]): ReceiveState {
+	const countsByState = FindCountsByState(receivers);
+	return StatePriorityOrder.find(((state) => countsByState[state] > 0)) ?? ReceiveState.NotStarted;
 }
 
 export interface ReceiverData<TSuccessData> {
 	readonly SuccessData: TSuccessData | null;
 	readonly ErrorMessage: string;
-	readonly State: LoadState;
+	readonly State: ReceiveState;
 }
 
 export class Receiver<TSuccessData> {
 	constructor(defaultError: string) {
-		this._data = new Observable(Receiver.NotStartedData);
+		this._data = new Observable(Receiver.NotStarted);
 		this._defaultError = defaultError;
 	}
 
@@ -42,7 +38,7 @@ export class Receiver<TSuccessData> {
 			return this;
 		}
 
-		this._data.Value = Receiver.LoadingData;
+		this._data.Value = Receiver.Pending;
 
 		if (promise !== undefined) {
 			promise
@@ -53,27 +49,27 @@ export class Receiver<TSuccessData> {
 		return this;
 	}
 
-	public Succeeded(successData: TSuccessData): void {
-		this._data.Value = { SuccessData: successData, State: LoadState.Loaded, ErrorMessage: "" };
+	public Succeeded(data: TSuccessData): void {
+		this._data.Value = { SuccessData: data, State: ReceiveState.Received, ErrorMessage: "" };
 	}
 
-	public Failed(errorMessage?: string): void {
-		this._data.Value = { SuccessData: null, State: LoadState.Failed, ErrorMessage: errorMessage ?? this._defaultError };
+	public Failed(error?: string): void {
+		this._data.Value = { SuccessData: null, State: ReceiveState.Failed, ErrorMessage: error ?? this._defaultError };
 	}
 
 	public Reset(): void {
-		this._data.Value = Receiver.UnloadedData;
+		this._data.Value = Receiver.Unloaded;
 	}
 
 	public CanStart(): boolean {
-		return this.Data.Value.State !== LoadState.Pending;
+		return this.Data.Value.State !== ReceiveState.Pending;
 	}
 
 	public get Data(): ReadOnlyObservable<ReceiverData<TSuccessData>> { return this._data; }
 
-	private static NotStartedData = { SuccessData: null, State: LoadState.NotStarted, ErrorMessage: "" };
-	private static LoadingData = { SuccessData: null, State: LoadState.Pending, ErrorMessage: "" };
-	private static UnloadedData = { SuccessData: null, State: LoadState.Unloaded, ErrorMessage: "" };
+	private static NotStarted = { SuccessData: null, State: ReceiveState.NotStarted, ErrorMessage: "" };
+	private static Pending = { SuccessData: null, State: ReceiveState.Pending, ErrorMessage: "" };
+	private static Unloaded = { SuccessData: null, State: ReceiveState.Unloaded, ErrorMessage: "" };
 
 	private _defaultError: string;
 
@@ -85,11 +81,11 @@ export interface BaseLoadingComponentProps {
 	errorComponent: (errors: string[]) => JSX.Element,
 	notStartedComponent: JSX.Element;
 	unloadedComponent?: JSX.Element;
-	determineLoadState?: () => LoadState;
+	determineLoadState?: () => ReceiveState;
 }
 
-export function isPending(loadable: Receiver<unknown>): boolean {
-	return useObservable(loadable.Data).State === LoadState.Pending;
+export function isPending(receiver: Receiver<unknown>): boolean {
+	return useObservable(receiver.Data).State === ReceiveState.Pending;
 }
 
 export function Loading<A>(props: { receivers: [Receiver<A>], successComponent: (a: A) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
@@ -104,15 +100,15 @@ export function Loading(props: { receivers: Receiver<unknown>[], successComponen
 	const loadState = (props.determineLoadState ?? DefaultDetermineLoadState)(receiverData);
 
 	switch (loadState) {
-		case LoadState.Failed:
+		case ReceiveState.Failed:
 			return props.errorComponent(receiverData.map((data) => data.ErrorMessage).filter(message => (message?.length ?? 0) > 0));
-		case LoadState.Loaded:
+		case ReceiveState.Received:
 			return props.successComponent(...receiverData.map((data) => data.SuccessData));
-		case LoadState.NotStarted:
+		case ReceiveState.NotStarted:
 			return props.notStartedComponent;
-		case LoadState.Unloaded:
+		case ReceiveState.Unloaded:
 			return props.unloadedComponent ?? props.notStartedComponent;
-		case LoadState.Pending:
+		case ReceiveState.Pending:
 		default:
 			return props.pendingComponent;
 	}
