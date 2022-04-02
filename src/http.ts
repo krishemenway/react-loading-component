@@ -1,12 +1,11 @@
 export class Http {
 	/**
 	 * @param url Url path for get request.
-	 * @param loadable Loadable object that will used to track the status and result of this request.
 	 * @param transformFunc Optional conversion function if you want something more complex than the response object stored.
 	 * @template TResponse Describes the type for the json response
 	 */
-	public static get<TResponse, TLoadableData = TResponse>(url: string, transformFunc?: (response: TResponse) => TLoadableData): Promise<TLoadableData> {
-		return new Promise<TLoadableData>((onFulfilled, onRejected) => {
+	public static get<TResponse, TTransformedData = TResponse>(url: string, transformFunc?: (response: TResponse) => TTransformedData): Promise<TTransformedData> {
+		return new Promise<TTransformedData>((onFulfilled, onRejected) => {
 			fetch(url)
 				.then((response) => {
 					if (!response.ok) {
@@ -16,7 +15,7 @@ export class Http {
 					return response.json();
 				})
 				.then((jsonResponse: TResponse) => {
-					onFulfilled(transformFunc === undefined ? jsonResponse as unknown as TLoadableData : transformFunc(jsonResponse));
+					onFulfilled(transformFunc === undefined ? jsonResponse as unknown as TTransformedData : transformFunc(jsonResponse));
 				}, (reason: Error) => {
 					onRejected(reason);
 				});
