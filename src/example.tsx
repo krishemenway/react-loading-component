@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Observable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
-import { Http } from "./Http";
 import { Receiver, Loading } from "./index";
 
 // This example illustrates how you can build a UI that switches between rendering Success/Loading/Error components
@@ -47,7 +46,13 @@ class EditableProfile {
 			Email: this.Email.Value,
 		};
 
-		Http.post("/Save", request).then(() => { this.IsSaving.Value = false; });
+		const fetchRequest: RequestInit = {
+			body: JSON.stringify(request),
+			method: "post",
+			headers: { "Content-Type": "application/json" },
+		};
+
+		fetch("/Save", fetchRequest).then(() => { this.IsSaving.Value = false; });
 	}
 
 	public Name: Observable<string>;
@@ -68,7 +73,7 @@ class ProfileEditor {
 	}
 
 	public LoadProfile(): void {
-		this.Profile.Start(Http.get<ProfileResponse, EditableProfile>("/SomeEndpoint", (response) => new EditableProfile(response)));
+		this.Profile.Start(fetch("/SomeEndpoint").then((response) => response.json()).then((jsonResponse: ProfileResponse) => new EditableProfile(jsonResponse)));
 	}
 
 	public Profile: Receiver<EditableProfile>;
