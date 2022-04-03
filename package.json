@@ -21,13 +21,18 @@
     "watch": "tsc --watch"
   },
   "peerDependencies": {
-    "react": "17.0.2"
+    "react": "17.0.2",
+    "@residualeffect/reactor": "4.1.0",
+    "@residualeffect/rereactor": "1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@residualeffect/reactor": "^4.1.0",
-    "@residualeffect/rereactor": "^1.0.0",
+    "@types/react": "^17.0.43",
     "@types/jest": "^26.0.20",
-    "@types/react": "17.0.39",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.19.0",
@@ -43,6 +48,6 @@
     "lib/"
   ],
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=16.0.0"
   }
 }
