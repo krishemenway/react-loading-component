@@ -13,7 +13,7 @@ beforeEach(() => {
 	pendingReceiver = new Receiver<string>("Error").Start();
 
 	receivedReceiver = new Receiver<string>("Error");
-	receivedReceiver.Succeeded("Done");
+	receivedReceiver.Received("Done");
 
 	failedReceiver = new Receiver<string>("Error");
 	failedReceiver.Failed("Fail");

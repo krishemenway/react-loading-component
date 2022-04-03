@@ -15,18 +15,23 @@ export interface BaseLoadingComponentProps {
 	determineReceiveState?: () => ReceiveState;
 }
 
+/**
+ * Used for subscribing to a receiver to check for it is pending. Good for disabling buttons.
+ * @param receiver Receiver to observe for state changes.
+ * @returns If the receiver is pending data.
+ */
 export function isPending(receiver: Receiver<unknown>): boolean {
 	return useObservable(receiver.Data).State === ReceiveState.Pending;
 }
 
-function LoadingComponent<A>(props: { receivers: [Receiver<A>], successComponent: (a: A) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function LoadingComponent<A, B>(props: { receivers: [Receiver<A>, Receiver<B>], successComponent: (a: A, b: B) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function LoadingComponent<A, B, C>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>], successComponent: (a: A, b: B, c: C) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function LoadingComponent<A, B, C, D>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>], successComponent: (a: A, b: B, c: C, d: D) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function LoadingComponent<A, B, C, D, E>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>, Receiver<E>], successComponent: (a: A, b: B, c: C, d: D, e: E) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
-function LoadingComponent<A, B, C, D, E, F>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>, Receiver<E>, Receiver<F>], successComponent: (a: A, b: B, c: C, d: D, e: E, f: F) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A>(props: { receivers: [Receiver<A>], receivedComponent: (a: A) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A, B>(props: { receivers: [Receiver<A>, Receiver<B>], receivedComponent: (a: A, b: B) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A, B, C>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>], receivedComponent: (a: A, b: B, c: C) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A, B, C, D>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>], receivedComponent: (a: A, b: B, c: C, d: D) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A, B, C, D, E>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>, Receiver<E>], receivedComponent: (a: A, b: B, c: C, d: D, e: E) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
+function LoadingComponent<A, B, C, D, E, F>(props: { receivers: [Receiver<A>, Receiver<B>, Receiver<C>, Receiver<D>, Receiver<E>, Receiver<F>], receivedComponent: (a: A, b: B, c: C, d: D, e: E, f: F) => JSX.Element } & BaseLoadingComponentProps): JSX.Element;
 
-function LoadingComponent(props: { receivers: Receiver<unknown>[], successComponent: (...inputValues: unknown[]) => JSX.Element, } & BaseLoadingComponentProps): JSX.Element {
+function LoadingComponent(props: { receivers: Receiver<unknown>[], receivedComponent: (...inputValues: unknown[]) => JSX.Element, } & BaseLoadingComponentProps): JSX.Element {
 	const [hasPassedThreshold, setHasPassedThreshold] = React.useState(false);
 	const receiverData = props.receivers.map((r) => useObservable(r.Data));
 	const receiveState = (props.determineReceiveState ?? DetermineReceiveState.Default)(receiverData);
@@ -48,7 +53,7 @@ function LoadingComponent(props: { receivers: Receiver<unknown>[], successCompon
 		case ReceiveState.Failed:
 			return props.errorComponent(receiverData.map((data) => data.ErrorMessage).filter(message => (message?.length ?? 0) > 0));
 		case ReceiveState.Received:
-			return props.successComponent(...receiverData.map((data) => data.SuccessData));
+			return props.receivedComponent(...receiverData.map((data) => data.ReceivedData));
 		case ReceiveState.NotStarted:
 			return hasPassedThreshold ? props.notStartedComponent : <></>;
 		case ReceiveState.Unloaded:

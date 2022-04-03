@@ -3,11 +3,11 @@ import { ReceiveState } from "./ReceiveState";
 
 test("Should set success state with data", () => {
 	const receiver = new Receiver<string>("Default Error Message");
-	receiver.Succeeded("Received");
+	receiver.Received("Received");
 
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Received);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("");
-	expect(receiver.Data.Value.SuccessData).toStrictEqual("Received");
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual("Received");
 });
 
 test("Should set fail state with message", () => {
@@ -16,12 +16,12 @@ test("Should set fail state with message", () => {
 
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Failed);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("Failure");
-	expect(receiver.Data.Value.SuccessData).toStrictEqual(null);
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual(null);
 });
 
 test("Should set unloaded state when reset", () => {
 	const receiver = new Receiver<string>("Default Error Message");
-	receiver.Succeeded("Received");
+	receiver.Received("Received");
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Received);
 
 	receiver.Reset();
@@ -35,7 +35,7 @@ test("Should set pending when provided promise to Start is outstanding", () => {
 	receiver.Start(promise);
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Pending);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("");
-	expect(receiver.Data.Value.SuccessData).toStrictEqual(null);
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual(null);
 });
 
 test("Should set succeeded when provided promise to Start resolves", async () => {
@@ -47,7 +47,7 @@ test("Should set succeeded when provided promise to Start resolves", async () =>
 
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Received);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("");
-	expect(receiver.Data.Value.SuccessData).toStrictEqual("Received");
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual("Received");
 });
 
 test("Should set failed when provided promise to Start rejects", async () => {
@@ -57,7 +57,7 @@ test("Should set failed when provided promise to Start rejects", async () => {
 	receiver.Start(promise);
 	await new Promise((resolve) => process.nextTick(resolve));
 
-	expect(receiver.Data.Value.SuccessData).toStrictEqual(null);
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual(null);
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Failed);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("Failed");
 });
@@ -71,5 +71,5 @@ test("Should set failed when provided promise to Start throws an error", async (
 
 	expect(receiver.Data.Value.State).toStrictEqual(ReceiveState.Failed);
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("Failed");
-	expect(receiver.Data.Value.SuccessData).toStrictEqual(null);
+	expect(receiver.Data.Value.ReceivedData).toStrictEqual(null);
 });

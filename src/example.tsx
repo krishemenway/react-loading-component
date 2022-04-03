@@ -3,7 +3,7 @@ import { Observable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
 import { Receiver, Loading } from "./index";
 
-// This example illustrates how you can build a UI that switches between rendering Success/Loading/Error components
+// This example illustrates how you can build a UI that switches between rendering Receive/Loading/Error components
 // depending on whether the request to "/SomeEndpoint" is still loading, succeeds, or fails. At the finish, it displays a component
 // that allows you edit the value that was received from the server. Note, you never have to deal with cases where this value is empty
 // because the data has not been loaded yet--the <Loading /> component provides the guarantee that the loaded data is there and ready.
@@ -19,7 +19,7 @@ export const View: React.FC = () => {
 				receivers={[service.Profile]}
 				notStartedComponent={<ProfileLoading />}
 				pendingComponent={<ProfileLoading />}
-				successComponent={(data) => <EditProfile data={data} />}
+				receivedComponent={(data) => <EditProfile data={data} />}
 				errorComponent={(errors) => <ProfileErrors errors={errors} />}
 			/>
 		</div>
@@ -73,7 +73,7 @@ class ProfileEditor {
 	}
 
 	public LoadProfile(): void {
-		this.Profile.Start(fetch("/SomeEndpoint").then((response) => response.json()).then((jsonResponse: ProfileResponse) => new EditableProfile(jsonResponse)));
+		this.Profile.Start(() => fetch("/SomeEndpoint").then((response) => response.json()).then((jsonResponse: ProfileResponse) => new EditableProfile(jsonResponse)));
 	}
 
 	public Profile: Receiver<EditableProfile>;
