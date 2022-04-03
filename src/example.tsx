@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Observable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
-import { Loading, Receiver } from "./index";
-import { Http } from "./http";
+import { Http } from "./Http";
+import { Receiver, Loading } from "./index";
 
 // This example illustrates how you can build a UI that switches between rendering Success/Loading/Error components
 // depending on whether the request to "/SomeEndpoint" is still loading, succeeds, or fails. At the finish, it displays a component
