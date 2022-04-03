@@ -1,19 +1,8 @@
 import * as React from "react";
 import { useObservable } from "@residualeffect/rereactor";
 import { ReceiveState } from "./ReceiveState";
-import type { Receiver, ReceiverData } from "./Receiver";
-
-export function FindCountsByState(receivers: ReceiverData<unknown>[]): Record<string, number> {
-	const counts: Record<string, number> = Object.keys(ReceiveState).reduce((receiveStateCount, state) => { receiveStateCount[state] = 0; return receiveStateCount; }, {} as Record<string, number>);
-	return receivers.reduce((current, receiverData) => { current[receiverData.State]++; return current; }, counts);
-}
-
-const StatePriorityOrder = [ReceiveState.Failed, ReceiveState.Pending, ReceiveState.NotStarted, ReceiveState.Unloaded, ReceiveState.Received];
-
-export function DefaultDetermineReceiveState(receivers: ReceiverData<unknown>[]): ReceiveState {
-	const countsByState = FindCountsByState(receivers);
-	return StatePriorityOrder.find(((state) => countsByState[state] > 0)) ?? ReceiveState.NotStarted;
-}
+import type { Receiver } from "./Receiver";
+import { DetermineReceiveState } from "./DetermineReceiveState";
 
 export interface BaseLoadingComponentProps {
 	minimumRenderThreshold?: number;
@@ -40,18 +29,13 @@ function LoadingComponent<A, B, C, D, E, F>(props: { receivers: [Receiver<A>, Re
 function LoadingComponent(props: { receivers: Receiver<unknown>[], successComponent: (...inputValues: unknown[]) => JSX.Element, } & BaseLoadingComponentProps): JSX.Element {
 	const [hasPassedThreshold, setHasPassedThreshold] = React.useState(false);
 	const receiverData = props.receivers.map((r) => useObservable(r.Data));
-	const receiveState = (props.determineReceiveState ?? DefaultDetermineReceiveState)(receiverData);
+	const receiveState = (props.determineReceiveState ?? DetermineReceiveState.Default)(receiverData);
 
 	React.useLayoutEffect(() => {
-		if (props.minimumRenderThreshold === undefined) {
+		if (props.minimumRenderThreshold === undefined || receiveState === ReceiveState.Failed || receiveState === ReceiveState.Received) {
 			setHasPassedThreshold(true);
-			return () => undefined;
-		}
-
-		if (receiveState === ReceiveState.Unloaded) {
+		} else if (receiveState === ReceiveState.Unloaded) {
 			setHasPassedThreshold(false);
-		} else if (receiveState === ReceiveState.Failed || receiveState === ReceiveState.Received) {
-			setHasPassedThreshold(true);
 		} else if (receiveState === ReceiveState.Pending) {
 			const newHandle = window.setTimeout(() => { setHasPassedThreshold(true); }, props.minimumRenderThreshold)
 			return () => window.clearTimeout(newHandle);
