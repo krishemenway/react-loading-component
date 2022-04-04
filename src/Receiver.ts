@@ -18,7 +18,7 @@ export class Receiver<TReceivedData> {
 	 * @param promise Optional argument for easy integration with tasks ran within a promise.
 	 * @returns This receiver. To help with creating Receiver and Starting in one line.
 	 */
-	public Start(promise: () => Promise<TReceivedData>): Receiver<TReceivedData> {
+	public Start(promise?: () => Promise<TReceivedData>): Receiver<TReceivedData> {
 		if (!this.CanStart()) {
 			return this;
 		}
