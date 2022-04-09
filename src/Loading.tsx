@@ -5,7 +5,7 @@ import type { Receiver } from "./Receiver";
 import { DetermineLoadState } from "./DetermineLoadState";
 
 export interface BaseLoadingComponentProps {
-	minimumRenderThreshold?: number;
+	minimumTimeRequiredToRender?: number;
 
 	whenLoading: JSX.Element,
 	whenNotStarted: JSX.Element;
@@ -38,12 +38,12 @@ function LoadingComponent(props: { receivers: Receiver<unknown>[], whenReceived:
 	const receiveState = (props.determineLoadState ?? DetermineLoadState.Default)(receiverData);
 
 	React.useLayoutEffect(() => {
-		if (props.minimumRenderThreshold === undefined || receiveState === LoadState.Failed || receiveState === LoadState.Received) {
+		if (props.minimumTimeRequiredToRender === undefined || receiveState === LoadState.Failed || receiveState === LoadState.Received) {
 			setHasPassedThreshold(true);
 		} else if (receiveState === LoadState.Unloaded) {
 			setHasPassedThreshold(false);
 		} else if (receiveState === LoadState.Loading) {
-			const newHandle = window.setTimeout(() => { setHasPassedThreshold(true); }, props.minimumRenderThreshold)
+			const newHandle = window.setTimeout(() => { setHasPassedThreshold(true); }, props.minimumTimeRequiredToRender)
 			return () => window.clearTimeout(newHandle);
 		}
 
