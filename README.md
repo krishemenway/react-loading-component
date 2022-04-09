@@ -64,6 +64,8 @@ interface ProfileResponse {
 }
 ```
 
+Check out the [more detailed example](https://github.com/krishemenway/react-loading-component/blob/main/src/example.tsx).
+
 # License
 
 react-loading-component is freely distributable under the terms of the [MIT License](LICENSE).
