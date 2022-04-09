@@ -50,7 +50,7 @@ export class Receiver<TReceivedData> {
 	 * @param error The failure message why the request failed.
 	 */
 	public Failed(error?: string): void {
-		this.WritableData.Value = { ReceivedData: null, State: LoadState.Failed, ErrorMessage: error ?? this.DefaultError };
+		this.WritableData.Value = { ReceivedData: null, State: LoadState.Failed, ErrorMessage: error !== undefined && error.length > 0 ? error : this.DefaultError };
 	}
 
 	/**
