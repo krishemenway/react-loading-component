@@ -3,8 +3,8 @@ import { LoadState } from "./LoadState";
 
 export class DetermineLoadState {
 	public static Default(receivers: ReceiverData<unknown>[]): LoadState {
-		const countsByState = this.FindCountsByState(receivers);
-		return this.DefaultPriorityOrder.find(((state) => countsByState[state] > 0)) ?? LoadState.NotStarted;
+		const countsByState = DetermineLoadState.FindCountsByState(receivers);
+		return DetermineLoadState.DefaultPriorityOrder.find(((state) => countsByState[state] > 0)) ?? LoadState.NotStarted;
 	}
 
 	public static FindCountsByState(receivers: ReceiverData<unknown>[]): Record<string, number> {
