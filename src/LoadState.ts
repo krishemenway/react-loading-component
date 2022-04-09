@@ -1,6 +1,6 @@
-export enum ReceiveState {
+export enum LoadState {
 	NotStarted,
-	Pending,
+	Loading,
 	Received,
 	Failed,
 	Unloaded,

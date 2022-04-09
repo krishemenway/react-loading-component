@@ -3,13 +3,11 @@ import { Observable } from "@residualeffect/reactor";
 import { useObservable } from "@residualeffect/rereactor";
 import { Receiver, Loading } from "./index";
 
-// This example illustrates how you can build a UI that switches between rendering Receive/Loading/Error components
-// depending on whether the request to "/SomeEndpoint" is still loading, succeeds, or fails. At the finish, it displays a component
-// that allows you edit the value that was received from the server. Note, you never have to deal with cases where this value is empty
-// because the data has not been loaded yet--the <Loading /> component provides the guarantee that the loaded data is there and ready.
+// This example illustrates how you can build a UI that switches between rendering Received/Error/Loading components
+// depending on whether the request to "/SomeEndpoint" succeeds, fails, or is still loading.
 
 export const View: React.FC = () => {
-	const service = React.useMemo(() => new ProfileEditor(), []);
+	const service = React.useMemo(() => new ProfileEditor().LoadProfile(), []);
 	
 	return (
 		<div>
@@ -17,14 +15,29 @@ export const View: React.FC = () => {
 
 			<Loading
 				receivers={[service.Profile]}
-				notStartedComponent={<ProfileLoading />}
-				pendingComponent={<ProfileLoading />}
-				receivedComponent={(data) => <EditProfile data={data} />}
-				errorComponent={(errors) => <ProfileErrors errors={errors} />}
+				whenReceived={(data) => <EditProfile data={data} />}
+				whenError={(errors) => <ProfileErrors errors={errors} />}
+				whenLoading={<ProfileLoading />}
+				whenNotStarted={<ProfileLoading />}
 			/>
 		</div>
 	);
 };
+
+class ProfileEditor {
+	constructor() {
+		this.Profile = new Receiver<EditableProfile>("There was an issue downloading the profile data. Try Again later.");
+	}
+
+	public LoadProfile(): ProfileEditor {
+		// Informs the profile receiver to mark as loading and update the receiver to include the resulting promised object
+		// when the promise resolves. Rejection from the promise will result in the Receiver being marked Failed with the provided error reason.
+		this.Profile.Start(() => fetch("/SomeEndpoint").then((response) => response.json()).then((jsonResponse: ProfileResponse) => new EditableProfile(jsonResponse)));
+		return this;
+	}
+
+	public Profile: Receiver<EditableProfile>;
+}
 
 interface SaveRequest {
 	Name: string;
@@ -64,19 +77,6 @@ class EditableProfile {
 interface ProfileResponse {
 	Name: string;
 	Email: string;
-}
-
-class ProfileEditor {
-	constructor() {
-		this.Profile = new Receiver<EditableProfile>("There was an issue downloading the profile data. Try Again later.");
-		this.LoadProfile();
-	}
-
-	public LoadProfile(): void {
-		this.Profile.Start(() => fetch("/SomeEndpoint").then((response) => response.json()).then((jsonResponse: ProfileResponse) => new EditableProfile(jsonResponse)));
-	}
-
-	public Profile: Receiver<EditableProfile>;
 }
 
 const ProfileLoading: React.FC = () => <div>Loading ...</div>;
