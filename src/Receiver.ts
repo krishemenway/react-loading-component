@@ -64,11 +64,11 @@ export class Receiver<TReceivedData> {
 	/** Access to receiver data including State, Error and ReceivedData */
 	public get Data(): ReadOnlyObservable<ReceiverData<TReceivedData>> { return this.WritableData; }
 	public IsBusy: Computed<boolean>;
+	public DefaultError: string;
 
 	private static NotStarted = { ReceivedData: null, State: LoadState.NotStarted, ErrorMessage: "" };
 	private static Loading = { ReceivedData: null, State: LoadState.Loading, ErrorMessage: "" };
 	private static Unloaded = { ReceivedData: null, State: LoadState.Unloaded, ErrorMessage: "" };
 
-	private DefaultError: string;
 	private WritableData: Observable<ReceiverData<TReceivedData>>;
 }
