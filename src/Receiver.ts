@@ -29,9 +29,10 @@ export class Receiver<TReceivedData> {
 		this.WritableData.Value = Receiver.Loading;
 
 		if (promise !== undefined) {
+			const id = ++this.LastPromiseId;
 			promise()
-				.then((value) => { this.Received(value); }, (reason: Error) => { this.Failed(reason.message); })
-				.catch((reason: Error) => { this.Failed(reason.message); });
+				.then((value) => { this.WhenNotCanceled(id, () => this.Received(value)); }, (reason: Error) => { this.WhenNotCanceled(id, () => this.Failed(reason.message)); })
+				.catch((reason: Error) => { this.WhenNotCanceled(id, () => this.Failed(reason.message)); });
 		}
 
 		return this;
@@ -42,7 +43,7 @@ export class Receiver<TReceivedData> {
 	 * @param data Received data.
 	 */
 	public Received(data: TReceivedData): void {
-		this.WritableData.Value = { ReceivedData: data, State: LoadState.Received, ErrorMessage: "" };
+		this.SetWritableData({ ReceivedData: data, State: LoadState.Received, ErrorMessage: "" });
 	}
 
 	/**
@@ -50,7 +51,7 @@ export class Receiver<TReceivedData> {
 	 * @param error The failure message why the request failed.
 	 */
 	public Failed(error?: string): void {
-		this.WritableData.Value = { ReceivedData: null, State: LoadState.Failed, ErrorMessage: error !== undefined && error.length > 0 ? error : this.DefaultError };
+		this.SetWritableData({ ReceivedData: null, State: LoadState.Failed, ErrorMessage: error !== undefined && error.length > 0 ? error : this.DefaultError });
 	}
 
 	/**
@@ -58,7 +59,18 @@ export class Receiver<TReceivedData> {
 	 * Useful when wanting to free an especially large response object.
 	 */
 	public Reset(): void {
-		this.WritableData.Value = Receiver.Unloaded;
+		this.SetWritableData(Receiver.Unloaded);
+	}
+
+	private WhenNotCanceled(id: number, action: () => void) {
+		if (!this.IgnorePromises.includes(id)) {
+			action();
+		}
+	}
+
+	private SetWritableData(data: ReceiverData<TReceivedData>): void {
+		this.IgnorePromises.push(this.LastPromiseId);
+		this.WritableData.Value = data;
 	}
 
 	/** Access to receiver data including State, Error and ReceivedData */
@@ -71,4 +83,7 @@ export class Receiver<TReceivedData> {
 	private static Unloaded = { ReceivedData: null, State: LoadState.Unloaded, ErrorMessage: "" };
 
 	private WritableData: Observable<ReceiverData<TReceivedData>>;
+
+	private IgnorePromises: number[] = [];
+	private LastPromiseId = 0;
 }

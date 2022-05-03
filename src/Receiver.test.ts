@@ -86,3 +86,25 @@ test("Should set failed when provided promise to Start throws an error", async (
 	expect(receiver.Data.Value.ErrorMessage).toStrictEqual("Failed");
 	expect(receiver.Data.Value.ReceivedData).toStrictEqual(null);
 });
+
+test("Should stay unloaded when started request that will succeed but reset before finished", async () => {
+	const promise = new Promise<string>((onResolved) => { onResolved("Received"); });
+	const receiver = new Receiver<string>("Default Error Message");
+
+	receiver.Start(() => promise);
+	receiver.Reset();
+	await new Promise((resolve) => process.nextTick(resolve));
+
+	expect(receiver.Data.Value.State).toStrictEqual(LoadState.Unloaded);
+});
+
+test("Should stay unloaded when started request that will fail but reset before finished", async () => {
+	const promise = new Promise<string>(() => { throw new Error("Failed"); });
+	const receiver = new Receiver<string>("Default Error Message");
+
+	receiver.Start(() => promise);
+	receiver.Reset();
+	await new Promise((resolve) => process.nextTick(resolve));
+
+	expect(receiver.Data.Value.State).toStrictEqual(LoadState.Unloaded);
+});
