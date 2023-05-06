@@ -21,9 +21,9 @@
     "watch": "tsc --watch"
   },
   "peerDependencies": {
-    "react": "17.0.2",
-    "@residualeffect/reactor": "4.1.0",
-    "@residualeffect/rereactor": "1.0.0"
+    "react": ">= 17.0",
+    "@residualeffect/reactor": "4.x",
+    "@residualeffect/rereactor": "2.x"
   },
   "peerDependenciesMeta": {
     "@types/react": {
